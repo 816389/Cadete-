@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#241b36">
+  <meta name="description" content="Planejador de estudos, Pomodoro, revisões e estatísticas.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Cadete PMESP — Central de Estudos</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brandmark">CP</div>
+    <div class="brand"><strong>CADETE PMESP</strong><span>Central de Estudos</span></div>
+    <button id="syncBtn" class="pill warning hidden" type="button">Obsidian ⟳</button><span id="connection" class="pill">● Offline pronto</span>
+  </header>
+  <main class="shell">
+    <section class="hero">
+      <div><p class="eyebrow">SEU PLANO, SEU RITMO</p><h1>Estude com método.</h1><p>Organize tarefas, mantenha o foco e acompanhe sua evolução.</p></div>
+      <div class="hero-stat"><strong id="completion">0%</strong><span>tarefas concluídas hoje</span><div class="progress"><i id="progressbar"></i></div></div>
+    </section>
+    <nav class="tabs" aria-label="Seções">
+      <button class="tab active" data-tab="today">Hoje</button>
+      <button class="tab" data-tab="timer">Pomodoro</button>
+      <button class="tab" data-tab="stats">Estatísticas</button>
+      <button class="tab" data-tab="settings">Dados e ajustes</button>
+    </nav>
+    <section id="today" class="panel active">
+      <div class="section-head"><div><p class="eyebrow">PLANEJAMENTO</p><h2>Plano de estudos</h2></div><button id="exportMd" class="btn secondary">Exportar para Obsidian</button></div>
+      <form id="taskForm" class="task-form">
+        <label>Matéria<input id="subject" required maxlength="80" placeholder="Ex.: Matemática"></label>
+        <label>Atividade<input id="taskTitle" required maxlength="160" placeholder="Ex.: Resolver 20 questões"></label>
+        <label class="small-field">Data<input id="taskDate" type="date" required></label>
+        <button class="btn" type="submit">+ Adicionar</button>
+      </form>
+      <details class="settings-card" id="importBox"><summary><strong>Importar checklist do plano</strong></summary><p class="muted">Cole HTML ou Markdown (títulos viram matérias; itens viram atividades). Linhas "Matéria — atividade" também funcionam.</p><textarea id="impText" rows="6" placeholder="## Português&#10;- [ ] Interpretação de texto: 20 questões&#10;- [ ] Literatura: classicismo"></textarea><div class="button-row"><label class="small-field">Início<input id="impDate" type="date"></label><label class="small-field">Itens por dia (0 = todos)<input id="impPer" type="number" min="0" value="0"></label><button id="impGo" class="btn" type="button">Importar</button></div></details>
+      <div class="filter-row"><h3>Atividades</h3><select id="taskFilter" aria-label="Filtrar tarefas"><option value="all">Todas</option><option value="open">Pendentes</option><option value="done">Concluídas</option></select></div>
+      <div id="taskList" class="task-list"></div>
+      <div class="empty hidden" id="emptyTasks">Nenhuma atividade neste filtro. Adicione uma tarefa acima.</div>
+    </section>
+    <section id="timer" class="panel">
+      <div class="section-head"><div><p class="eyebrow">CONCENTRAÇÃO</p><h2>Pomodoro</h2></div><span class="pill">Foco + pausa</span></div>
+      <div class="timer-card">
+        <label class="timer-task">O que você vai estudar?<input id="timerSubject" placeholder="Ex.: Direito Constitucional" maxlength="100"></label>
+        <div class="clock" id="clock">25:00</div><p id="timerStatus" class="muted">Pronto para começar</p>
+        <div class="timer-presets"><button data-minutes="25" class="preset selected">25 min</button><button data-minutes="45" class="preset">45 min</button><button data-minutes="50" class="preset">50 min</button><button data-minutes="5" class="preset">Pausa 5 min</button></div>
+        <div class="timer-actions"><button id="startTimer" class="btn">Iniciar</button><button id="pauseTimer" class="btn secondary">Pausar</button><button id="resetTimer" class="btn ghost">Zerar</button></div>
+      </div>
+      <p class="note">O cronômetro funciona enquanto a página está aberta. Alertas sonoros/notificações dependem das permissões do dispositivo e podem ser limitados pelo sistema quando o app está em segundo plano.</p>
+    </section>
+    <section id="stats" class="panel">
+      <div class="section-head"><div><p class="eyebrow">CONSISTÊNCIA</p><h2>Estatísticas e revisões</h2></div></div>
+      <div class="stats-grid"><article class="stat-card"><span>Atividades concluídas</span><strong id="statDone">0</strong></article><article class="stat-card"><span>Atividades pendentes</span><strong id="statPending">0</strong></article><article class="stat-card"><span>Minutos focados</span><strong id="statMinutes">0</strong></article><article class="stat-card"><span>Sessões concluídas</span><strong id="statSessions">0</strong></article></div>
+      <h3>Revisões sugeridas</h3><p class="muted">Tarefas concluídas há 1, 7 ou 30 dias aparecem aqui como lembrete de revisão.</p><div id="reviews" class="task-list"></div>
+      <h3>Últimas sessões</h3><div id="sessionList" class="task-list"></div>
+    </section>
+    <section id="settings" class="panel">
+      <div class="section-head"><div><p class="eyebrow">PORTABILIDADE</p><h2>Dados e ajustes</h2></div></div>
+      <div class="settings-card"><h3>Sincronização na nuvem</h3><p>A versão inicial salva os dados neste dispositivo e funciona offline. A sincronização entre Android e Windows precisa de um backend configurado (por exemplo, Firebase). Não há nuvem ativa nesta cópia e nenhum dado é enviado para terceiros.</p><span class="pill warning">Sincronização: não configurada</span></div>
+      <div class="settings-card"><h3>Backup e restauração</h3><p>Exporte um arquivo JSON para backup ou importe um backup anterior neste dispositivo.</p><div class="button-row"><button id="backup" class="btn secondary">Baixar backup JSON</button><label class="btn ghost file-btn">Importar backup<input id="restore" type="file" accept="application/json"></label></div></div>
+      <div class="settings-card"><h3>Obsidian (log automático)</h3><p>Pomodoros e tarefas concluídas viram linhas na nota diária <code>pasta/AAAA-MM-DD.md</code>. <b>Windows/PC:</b> escolha a pasta do vault e a gravação é direta. <b>Android:</b> informe o nome do vault; um toque em “Obsidian ⟳” envia as linhas pendentes pelo app.</p><label>Nome do vault<input id="obsVault" placeholder="Ex.: Estudos"></label><label>Pasta das notas diárias<input id="obsFolder" placeholder="Estudos"></label><div class="button-row"><button id="obsPick" class="btn secondary hidden" type="button">Escolher pasta do vault (PC)</button><button id="obsFlush" class="btn" type="button">Enviar pendentes</button><button id="exportMd2" class="btn ghost" type="button">Exportar Markdown</button></div><p id="obsInfo" class="muted"></p></div>
+            <div class="settings-card"><h3>Instalação</h3><p>No Android, abra o site publicado no Chrome e escolha “Instalar app” ou “Adicionar à tela inicial”. No Windows 11, abra no Edge ou Chrome e use o ícone de instalação na barra de endereços.</p></div>
+      <div class="settings-card danger-zone"><h3>Apagar dados locais</h3><p>Apaga tarefas e sessões armazenadas neste navegador. Faça um backup antes.</p><button id="clearData" class="btn danger">Apagar dados locais</button></div>
+    </section>
+    <footer><span>Cadete PMESP • versão 0.2</span><span id="savedStatus">Salvo neste dispositivo</span></footer>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn));
+    }
+  </script>
+</body>
+</html>
